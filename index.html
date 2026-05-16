@@ -266,6 +266,14 @@
   @media (max-width: 600px) {
     h1 { font-size: 15px; }
     .stat-val { font-size: 18px; }
+    .ctrl-label { min-width: 120px; font-size: 11px; }
+    .top-controls { padding: 10px 12px; }
+    .patient-row { gap: 6px; }
+    .pstate { font-size: 11px; padding: 4px 10px; }
+    .stat-card { min-width: 80px; padding: 6px 10px; }
+    .btn { padding: 6px 13px; font-size: 12px; }
+    .bottom-controls { gap: 8px; }
+    .legend { gap: 10px; font-size: 10px; }
   }
 </style>
 </head>
@@ -400,8 +408,12 @@ const gc='rgba(255,255,255,0.055)', zc='rgba(255,255,255,0.13)', tc='rgba(255,25
 const WLABELS=[{ms:1.5,l:'I'},{ms:3.5,l:'III'},{ms:5.7,l:'V'}];
 
 function setupCv(id){
-  const cv=document.getElementById(id),dpr=devicePixelRatio||1;
-  const w=Math.floor(cv.parentElement.getBoundingClientRect().width||800);
+  const cv=document.getElementById(id),dpr=Math.min(devicePixelRatio||1,2);
+  // getBoundingClientRect can return 0 on mobile before paint — fall back to container or window width
+  let w=Math.floor(cv.parentElement.getBoundingClientRect().width);
+  if(!w) w=Math.floor(document.querySelector('.container').getBoundingClientRect().width);
+  if(!w) w=Math.floor(window.innerWidth - 26); // 13px padding each side
+  w=Math.max(w,200);
   const h=parseInt(cv.getAttribute('height'));
   cv.width=w*dpr;cv.height=h*dpr;cv.style.width=w+'px';cv.style.height=h+'px';
   const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
@@ -562,11 +574,16 @@ function resetAll(){
   renderAll();
 }
 
+function redrawAll(){cvE=setupCv('cv-epochs');cvA=setupCv('cv-avg');cvS=setupCv('cv-snr');renderAll();}
+
 function init(){
-  cvE=setupCv('cv-epochs');cvA=setupCv('cv-avg');cvS=setupCv('cv-snr');renderAll();
+  // Multiple delayed redraws to handle mobile browsers that paint slowly
+  redrawAll();
+  setTimeout(redrawAll, 150);
+  setTimeout(redrawAll, 500);
 }
-window.addEventListener('load',init);
-window.addEventListener('resize',()=>{cvE=setupCv('cv-epochs');cvA=setupCv('cv-avg');cvS=setupCv('cv-snr');renderAll();});
+window.addEventListener('load', init);
+window.addEventListener('resize', ()=>{ clearTimeout(window._rt); window._rt=setTimeout(redrawAll,100); });
 </script>
 </body>
 </html>
