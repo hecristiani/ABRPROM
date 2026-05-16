@@ -340,15 +340,15 @@
 
   <div class="canvas-section">
     <div class="canvas-label" id="epochs-label">Barridos individuales — señal ABR sepultada en ruido EEG</div>
-    <canvas id="cv-epochs" height="124"></canvas>
+    <canvas id="cv-epochs" data-ratio="0.22"></canvas>
   </div>
   <div class="canvas-section">
     <div class="canvas-label">Promedio acumulado → ondas I, III, V emergen del ruido</div>
-    <canvas id="cv-avg" height="116"></canvas>
+    <canvas id="cv-avg" data-ratio="0.20"></canvas>
   </div>
   <div class="canvas-section">
     <div class="canvas-label">Reducción del ruido con N barridos — teoría vs. medido</div>
-    <canvas id="cv-snr" height="86"></canvas>
+    <canvas id="cv-snr" data-ratio="0.15"></canvas>
   </div>
 
   <div class="bottom-controls">
@@ -409,12 +409,13 @@ const WLABELS=[{ms:1.5,l:'I'},{ms:3.5,l:'III'},{ms:5.7,l:'V'}];
 
 function setupCv(id){
   const cv=document.getElementById(id),dpr=Math.min(devicePixelRatio||1,2);
-  // getBoundingClientRect can return 0 on mobile before paint — fall back to container or window width
   let w=Math.floor(cv.parentElement.getBoundingClientRect().width);
   if(!w) w=Math.floor(document.querySelector('.container').getBoundingClientRect().width);
-  if(!w) w=Math.floor(window.innerWidth - 26); // 13px padding each side
+  if(!w) w=Math.floor(window.innerWidth - 26);
   w=Math.max(w,200);
-  const h=parseInt(cv.getAttribute('height'));
+  // Height proportional to width so it never overflows on mobile
+  const ratio=parseFloat(cv.getAttribute('data-ratio')||0.22);
+  const h=Math.round(w*ratio);
   cv.width=w*dpr;cv.height=h*dpr;cv.style.width=w+'px';cv.style.height=h+'px';
   const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
   return{ctx,w,h};
